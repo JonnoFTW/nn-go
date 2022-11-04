@@ -63,8 +63,6 @@ func (m *Model) Init() {
 			l.biases.Initialize(l.biasInitializer, inputs, l.units)
 		}
 		inputs = l.units
-		//fmt.Printf("Layer %d has weights:\n", idx)
-		//l.weights.Print()
 	}
 	m.initialized = true
 }
