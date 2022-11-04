@@ -41,3 +41,27 @@ func TestMatrix_Product(t *testing.T) {
 	}
 
 }
+
+func TestMatrix_Rec_Square_Product(t *testing.T) {
+	a := NewMatrix(2, 2)
+	b := NewMatrix(2, 3)
+	a.v = [][]float64{
+		{4, 0},
+		{0, 4},
+	}
+	b.v = [][]float64{
+		{4, 0, 0},
+		{0, 0, 4},
+	}
+	prod := a.Product(b)
+	prod.Print()
+	ab := NewMatrix(2, 3)
+	ab.v = [][]float64{
+		{16, 0, 0},
+		{0, 0, 16},
+	}
+	if !prod.Eq(ab).All() {
+		t.Fatal("Invalid matrix multiplication, got")
+	}
+
+}
