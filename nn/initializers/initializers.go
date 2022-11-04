@@ -1,4 +1,4 @@
-package nn_go
+package initializers
 
 import (
 	"math"

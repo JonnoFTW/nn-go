@@ -1,6 +1,8 @@
-package nn_go
+package activations
 
-import "math"
+import (
+	"math"
+)
 
 type Activator func(float64) float64
 
@@ -29,8 +31,4 @@ func LRelU(v float64) float64 {
 		return 0.01 * v
 	}
 	return v
-}
-
-func (a Activator) f(m *Matrix) {
-
 }

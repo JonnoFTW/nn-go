@@ -1,8 +1,11 @@
-package nn_go
+package matrix
 
 import (
 	"fmt"
 	"log"
+	"math"
+	"nn-go/nn/activations"
+	"nn-go/nn/initializers"
 )
 
 type Matrix struct {
@@ -55,7 +58,7 @@ func (m *Matrix) Fill(v float64) *Matrix {
 }
 
 // Initialize a matrix with values by calling fn
-func (m *Matrix) Initialize(fn Initializer, inputs int, outputs int) *Matrix {
+func (m *Matrix) Initialize(fn initializers.Initializer, inputs int, outputs int) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] = fn(inputs, outputs)
@@ -65,7 +68,7 @@ func (m *Matrix) Initialize(fn Initializer, inputs int, outputs int) *Matrix {
 }
 
 // Activate apply an activation to a matrix and return a copy
-func (m *Matrix) Activate(fn Activator) *Matrix {
+func (m *Matrix) Activate(fn activations.Activator) *Matrix {
 	out := NewMatrix(m.rows, m.cols)
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
@@ -76,7 +79,7 @@ func (m *Matrix) Activate(fn Activator) *Matrix {
 }
 
 // ActivateInPlace apply an activation to a matrix in-place
-func (m *Matrix) ActivateInPlace(fn Activator) *Matrix {
+func (m *Matrix) ActivateInPlace(fn activations.Activator) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] = fn(m.v[i][j])
@@ -276,4 +279,18 @@ func (m *Matrix) Print() {
 		fmt.Printf("],\n")
 	}
 	fmt.Print("]\n")
+}
+
+// Softmax of the matrix as a copy
+func (m *Matrix) Softmax() *Matrix {
+	sum := float64(0)
+	out := NewMatrix(m.rows, m.cols)
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			out.v[i][j] = math.Exp(m.v[i][j])
+			sum += out.v[i][j]
+		}
+	}
+	out.Divn(sum)
+	return out
 }
