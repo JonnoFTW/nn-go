@@ -1,8 +1,8 @@
 package layers
 
 import (
+	"nn-go/nn"
 	"nn-go/nn/activations"
-	"nn-go/nn/matrix"
 )
 
 type Relu struct {
@@ -14,14 +14,14 @@ func (l *Relu) Init(inputs int) int {
 	return l.units
 }
 
-func (l *Relu) Forward(input *matrix.Matrix) *matrix.Matrix {
+func (l *Relu) Forward(input *nn.Matrix) *nn.Matrix {
 	result := input.Copy()
 	result.ActivateInPlace(activations.ReLU)
 	return result
 }
 
 // Backward pass through the network, updating if learning enabled
-func (l *Relu) Backward(input *matrix.Matrix) *matrix.Matrix {
+func (l *Relu) Backward(input *nn.Matrix) *nn.Matrix {
 	return input
 }
 

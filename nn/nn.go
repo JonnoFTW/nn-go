@@ -2,18 +2,16 @@ package nn
 
 import (
 	"log"
-	"nn-go/nn/layers"
-	"nn-go/nn/matrix"
 )
 
 type Model struct {
 	inputs      int
-	layers      []layers.Layer
+	layers      []Layer
 	initialized bool
 }
 
 func NewModel(inputs int) *Model {
-	var layers_ []layers.Layer
+	var layers_ []Layer
 	return &Model{
 		inputs,
 		layers_,
@@ -21,7 +19,7 @@ func NewModel(inputs int) *Model {
 	}
 }
 
-func (m *Model) AddLayer(layer layers.Layer) layers.Layer {
+func (m *Model) AddLayer(layer Layer) Layer {
 	m.layers = append(m.layers, layer)
 	return layer
 }
@@ -39,7 +37,7 @@ func (m *Model) Init() {
 }
 
 // Forward calculate the forward pass through the network and calculate the final output
-func (m *Model) Forward(inputs *matrix.Matrix) *matrix.Matrix {
+func (m *Model) Forward(inputs *Matrix) *Matrix {
 	if !m.initialized {
 		log.Fatal("Must call Init() before Forward()")
 	}
@@ -51,18 +49,18 @@ func (m *Model) Forward(inputs *matrix.Matrix) *matrix.Matrix {
 }
 
 // Loss calculate the loss and gradients
-func (m *Model) Loss(vals *matrix.Matrix, target *matrix.Matrix) *matrix.Matrix {
-	return matrix.NewMatrix(1, 1)
+func (m *Model) Loss(vals *Matrix, target *Matrix) *Matrix {
+	return NewMatrix(1, 1)
 }
 
 // Backward calculate the backward pass and update the weights
-func (m *Model) Backward(grads *matrix.Matrix) {
+func (m *Model) Backward(grads *Matrix) {
 
 }
 
 // Train the model.
 //  trainX - the
-func (m *Model) Train(trainX *matrix.Matrix, trainY *matrix.Matrix, validation *matrix.Matrix, epochs int) {
+func (m *Model) Train(trainX *Matrix, trainY *Matrix, validation *Matrix, epochs int) {
 
 	for i := 0; i < epochs; i++ {
 

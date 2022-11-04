@@ -1,7 +1,7 @@
 package layers
 
 import (
-	"nn-go/nn/matrix"
+	"nn-go/nn"
 )
 
 type Softmax struct {
@@ -13,12 +13,12 @@ func (l *Softmax) Init(inputs int) int {
 	return l.units
 }
 
-func (l *Softmax) Forward(input *matrix.Matrix) *matrix.Matrix {
+func (l *Softmax) Forward(input *nn.Matrix) *nn.Matrix {
 	return input.Softmax()
 }
 
 // Backward pass through the network, updating if learning enabled
-func (l *Softmax) Backward(input *matrix.Matrix) *matrix.Matrix {
+func (l *Softmax) Backward(input *nn.Matrix) *nn.Matrix {
 	return input
 }
 

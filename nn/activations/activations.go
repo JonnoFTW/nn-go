@@ -4,8 +4,6 @@ import (
 	"math"
 )
 
-type Activator func(float64) float64
-
 func ReLU(v float64) float64 {
 	return math.Max(0, v)
 }

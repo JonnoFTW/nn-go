@@ -1,11 +1,9 @@
-package matrix
+package nn
 
 import (
 	"fmt"
 	"log"
 	"math"
-	"nn-go/nn/activations"
-	"nn-go/nn/initializers"
 )
 
 type Matrix struct {
@@ -24,8 +22,7 @@ func NewMatrix(rows int, cols int) *Matrix {
 	}
 	return &Matrix{rows, cols, vals}
 }
-
-func MatrixFromArray(array [][]float64) *Matrix {
+func NewMatrixFromArray(array [][]float64) *Matrix {
 	out := NewMatrix(len(array), len(array[0]))
 	for i := 0; i < len(array); i++ {
 		if len(array[i]) != out.cols {
@@ -58,17 +55,17 @@ func (m *Matrix) Fill(v float64) *Matrix {
 }
 
 // Initialize a matrix with values by calling fn
-func (m *Matrix) Initialize(fn initializers.Initializer, inputs int, outputs int) *Matrix {
+func (m *Matrix) Initialize(fn Initializer, layer Layer) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
-			m.v[i][j] = fn(inputs, outputs)
+			m.v[i][j] = fn.Call(layer)
 		}
 	}
 	return m
 }
 
 // Activate apply an activation to a matrix and return a copy
-func (m *Matrix) Activate(fn activations.Activator) *Matrix {
+func (m *Matrix) Activate(fn Activator) *Matrix {
 	out := NewMatrix(m.rows, m.cols)
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
@@ -79,7 +76,7 @@ func (m *Matrix) Activate(fn activations.Activator) *Matrix {
 }
 
 // ActivateInPlace apply an activation to a matrix in-place
-func (m *Matrix) ActivateInPlace(fn activations.Activator) *Matrix {
+func (m *Matrix) ActivateInPlace(fn Activator) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] = fn(m.v[i][j])
@@ -137,7 +134,7 @@ func (m *Matrix) Subn(v float64) *Matrix {
 	return m
 }
 
-// Div divide all values in array with values in other array
+// Div divide all values in array with values in other array, in-place
 func (m *Matrix) Div(n *Matrix) *Matrix {
 	m.check(n)
 	for i := 0; i < m.rows; i++ {
@@ -148,7 +145,7 @@ func (m *Matrix) Div(n *Matrix) *Matrix {
 	return m
 }
 
-// Divn divide all values by v
+// Divn divide all values by v, in-place
 func (m *Matrix) Divn(v float64) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
@@ -158,22 +155,22 @@ func (m *Matrix) Divn(v float64) *Matrix {
 	return m
 }
 
-// Multiple all values in  divide all values in array with values in other array
+// Mult multiply all values in matrix m with those the same places in matrix n, in-place
 func (m *Matrix) Mult(n *Matrix) *Matrix {
 	m.check(n)
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
-			m.v[i][j] /= n.v[i][j]
+			m.v[i][j] *= n.v[i][j]
 		}
 	}
 	return m
 }
 
-// Divn divide all values by v
+// Multn multiply all values in matrix by v, in-place
 func (m *Matrix) Multn(v float64) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
-			m.v[i][j] /= v
+			m.v[i][j] *= v
 		}
 	}
 	return m
@@ -280,6 +277,11 @@ func (m *Matrix) Print() {
 	}
 	fmt.Print("]\n")
 }
+
+// ArgMax the index of the maximum element in the array
+//func (m *Matrix) ArgMax() int {
+//	if m.
+//}
 
 // Softmax of the matrix as a copy
 func (m *Matrix) Softmax() *Matrix {
