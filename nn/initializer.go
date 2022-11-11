@@ -1,5 +1,5 @@
 package nn
 
 type Initializer interface {
-	Call(layer Layer) float64
+	Call(layer Layer) float32
 }

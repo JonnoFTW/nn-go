@@ -1,3 +1,3 @@
 package nn
 
-type Activator func(float64) float64
+type Activator func(float32) float32

@@ -1,30 +1,30 @@
 package activations
 
 import (
-	"math"
+	math "github.com/chewxy/math32"
 )
 
-func ReLU(v float64) float64 {
+func ReLU(v float32) float32 {
 	return math.Max(0, v)
 }
 
-func Linear(v float64) float64 {
+func Linear(v float32) float32 {
 	return v
 }
 
-func Sigmoid(v float64) float64 {
+func Sigmoid(v float32) float32 {
 	return 1. / (1. + math.Exp(-v))
 }
 
-func Softmax(v float64) float64 {
+func Softmax(v float32) float32 {
 	return 1 / math.Exp(v)
 }
 
-func Tanh(v float64) float64 {
+func Tanh(v float32) float32 {
 	return math.Tanh(v)
 }
 
-func LRelU(v float64) float64 {
+func LRelU(v float32) float32 {
 	if v < 0 {
 		return 0.01 * v
 	}

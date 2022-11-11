@@ -37,9 +37,17 @@ func (l *Dense) Forward(input *nn.Matrix) *nn.Matrix {
 	return result
 }
 
-// Backward pass through the network, updating if learning enabled
-func (l *Dense) Backward(input *nn.Matrix) *nn.Matrix {
-	return input
+// Backward pass through the network, updating weights if learning enabled
+func (l *Dense) Backward(input *nn.Matrix, gradOutput *nn.Matrix, optimizer nn.Optimizer) *nn.Matrix {
+	gradInput := gradOutput.Product(l.weights.T())
+	gradWeights := input.T().Product(gradInput)
+	l.weights.Sub(gradWeights.Multn(optimizer.Lr()))
+
+	if l.useBias {
+		gradBiases := gradOutput.MeanCols().Multn(float32(l.inputs))
+		l.biases.Sub(gradBiases.Multn(optimizer.Lr()))
+	}
+	return gradInput
 }
 
 func (l *Dense) Inputs() int {

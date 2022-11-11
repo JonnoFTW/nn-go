@@ -5,12 +5,21 @@ import (
 )
 
 type Softmax struct {
-	units int
+	inputs  int
+	outputs int
+}
+
+func (l *Softmax) Inputs() int {
+	return l.inputs
+}
+
+func (l *Softmax) Outputs() int {
+	return l.outputs
 }
 
 func (l *Softmax) Init(inputs int) int {
-	l.units = inputs
-	return l.units
+	l.inputs = inputs
+	return l.outputs
 }
 
 func (l *Softmax) Forward(input *nn.Matrix) *nn.Matrix {
@@ -18,10 +27,16 @@ func (l *Softmax) Forward(input *nn.Matrix) *nn.Matrix {
 }
 
 // Backward pass through the network, updating if learning enabled
-func (l *Softmax) Backward(input *nn.Matrix) *nn.Matrix {
-	return input
+func (l *Softmax) Backward(input *nn.Matrix, grads *nn.Matrix, optimizer nn.Optimizer) *nn.Matrix {
+	// The softmax gradient is
+	for i := 0; i < input.Rows(); i++ {
+		//for j := 0; j < ; j++ {
+		//
+		//}
+	}
+	return grads
 }
 
-func NewSoftmaxLayer() *Softmax {
-	return &Softmax{0}
+func NewSoftmaxLayer(outputs int) *Softmax {
+	return &Softmax{0, outputs}
 }

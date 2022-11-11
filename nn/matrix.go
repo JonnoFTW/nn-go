@@ -2,27 +2,27 @@ package nn
 
 import (
 	"fmt"
+	math "github.com/chewxy/math32"
 	"log"
-	"math"
 )
 
 type Matrix struct {
 	rows int
 	cols int
-	v    [][]float64
+	v    [][]float32
 }
 
 func NewMatrix(rows int, cols int) *Matrix {
 	if rows <= 0 || cols <= 0 {
 		log.Fatal("Cannot have negative columns or rows")
 	}
-	vals := make([][]float64, rows)
+	vals := make([][]float32, rows)
 	for i := range vals {
-		vals[i] = make([]float64, cols)
+		vals[i] = make([]float32, cols)
 	}
 	return &Matrix{rows, cols, vals}
 }
-func NewMatrixFromArray(array [][]float64) *Matrix {
+func NewMatrixFromArray(array [][]float32) *Matrix {
 	out := NewMatrix(len(array), len(array[0]))
 	for i := 0; i < len(array); i++ {
 		if len(array[i]) != out.cols {
@@ -33,19 +33,32 @@ func NewMatrixFromArray(array [][]float64) *Matrix {
 	return out
 }
 
-// Copy a matrix
-func (m *Matrix) Copy() *Matrix {
+func NewMatrixLike(m *Matrix) *Matrix {
 	out := NewMatrix(m.rows, m.cols)
-	for i := 0; i < m.rows; i++ {
-		for j := 0; j < m.cols; j++ {
-			out.v[i][j] = m.v[i][j]
-		}
-	}
 	return out
 }
 
+func Ones(n int) *Matrix {
+	vals := make([][]float32, n)
+	for i := range vals {
+		vals[i] = make([]float32, n)
+		vals[i][i] = 1
+	}
+	return &Matrix{n, n, vals}
+}
+
+// Copy a matrix
+func (m *Matrix) Copy() *Matrix {
+	copyVals := make([][]float32, m.rows)
+	for i := range m.v {
+		copyVals[i] = make([]float32, m.cols)
+		copy(copyVals[i], m.v[i])
+	}
+	return &Matrix{m.rows, m.cols, copyVals}
+}
+
 // Fill a matrix with the same value v
-func (m *Matrix) Fill(v float64) *Matrix {
+func (m *Matrix) Fill(v float32) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] = v
@@ -88,23 +101,41 @@ func (m *Matrix) ActivateInPlace(fn Activator) *Matrix {
 // check if 2 matrices have the same dimensions, crash if they do not
 func (m *Matrix) check(n *Matrix) {
 	if m.rows != n.rows || m.cols != n.cols {
-		log.Fatalf("Array dimensions rows,cols (%d -> %d) (%d -> %d) don't match", m.rows, n.rows, m.cols, m.cols)
+		err := fmt.Errorf("array dimensions rows,cols (%d -> %d) (%d -> %d) don't match", m.rows, n.rows, m.cols, m.cols)
+		log.Fatal(err)
 	}
 }
 
 // Add the other matrix into this matrix, in-place
 func (m *Matrix) Add(n *Matrix) *Matrix {
-	m.check(n)
-	for i := 0; i < m.rows; i++ {
-		for j := 0; j < n.cols; j++ {
-			m.v[i][j] += n.v[i][j]
+	if n.rows == 1 && n.cols == m.cols {
+		// Add the row matrix n to each in m
+		for i := 0; i < m.rows; i++ {
+			for j := 0; j < m.cols; j++ {
+				m.v[i][j] += n.v[0][j]
+			}
+		}
+	} else {
+		//else if n.cols == 1 && n.rows == m.rows {
+		//	// Add the column matrix n to each in m
+		//	for i := 0; i < m.cols; i++ {
+		//		for j := 0; j < m.rows; j++ {
+		//			m.v[i][j] += n.v[j][0]
+		//		}
+		//	}
+		//}
+		m.check(n)
+		for i := 0; i < m.rows; i++ {
+			for j := 0; j < n.cols; j++ {
+				m.v[i][j] += n.v[i][j]
+			}
 		}
 	}
 	return m
 }
 
 // Addn add a value to an array
-func (m *Matrix) Addn(v float64) *Matrix {
+func (m *Matrix) Addn(v float32) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] += v
@@ -125,7 +156,7 @@ func (m *Matrix) Sub(n *Matrix) *Matrix {
 }
 
 // Subn subtract a value to an array
-func (m *Matrix) Subn(v float64) *Matrix {
+func (m *Matrix) Subn(v float32) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] -= v
@@ -146,7 +177,7 @@ func (m *Matrix) Div(n *Matrix) *Matrix {
 }
 
 // Divn divide all values by v, in-place
-func (m *Matrix) Divn(v float64) *Matrix {
+func (m *Matrix) Divn(v float32) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] /= v
@@ -167,7 +198,7 @@ func (m *Matrix) Mult(n *Matrix) *Matrix {
 }
 
 // Multn multiply all values in matrix by v, in-place
-func (m *Matrix) Multn(v float64) *Matrix {
+func (m *Matrix) Multn(v float32) *Matrix {
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			m.v[i][j] *= v
@@ -182,7 +213,7 @@ func (m *Matrix) Eq(n *Matrix) *Matrix {
 	out := NewMatrix(m.rows, m.cols)
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < n.cols; j++ {
-			e := 0.0
+			var e float32
 			if m.v[i][j] == n.v[i][j] {
 				e = 1
 			}
@@ -193,8 +224,8 @@ func (m *Matrix) Eq(n *Matrix) *Matrix {
 }
 
 // Sum of all elements in array
-func (m *Matrix) Sum() float64 {
-	sum := 0.0
+func (m *Matrix) Sum() float32 {
+	var sum float32
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
 			sum += m.v[i][j]
@@ -243,7 +274,7 @@ func (m *Matrix) Product(n *Matrix) *Matrix {
 	out := NewMatrix(N, P)
 	for i := 0; i < N; i++ {
 		for j := 0; j < P; j++ {
-			sum := 0.0
+			var sum float32
 			for k := 0; k < M; k++ {
 				sum += m.v[i][k] * n.v[k][j]
 			}
@@ -278,21 +309,150 @@ func (m *Matrix) Print() {
 	fmt.Print("]\n")
 }
 
-// ArgMax the index of the maximum element in the array
-//func (m *Matrix) ArgMax() int {
-//	if m.
-//}
+func argMaxRow(row []float32) int {
+	max := row[0]
+	maxIdx := 0
+	for i := 0; i < len(row); i++ {
+		if row[i] > max {
+			max = row[i]
+			maxIdx = i
+		}
+	}
+	return maxIdx
+}
 
-// Softmax of the matrix as a copy
+// ArgMax the index of the maximum element in the array
+func (m *Matrix) ArgMax() *Matrix {
+	out := NewMatrix(m.rows, 1)
+	for i := 0; i < m.rows; i++ {
+		out.v[i][0] = float32(argMaxRow(m.v[i]))
+	}
+	return out
+}
+
+// Softmax of the matrix. Returns a new matrix
 func (m *Matrix) Softmax() *Matrix {
-	sum := float64(0)
+	out := NewMatrix(m.rows, m.cols)
+	for i := 0; i < m.rows; i++ {
+		sum := float32(0)
+		max := m.v[i][0]
+		for j := 0; j < m.cols; j++ {
+			if m.v[i][j] > max {
+				max = m.v[i][j]
+			}
+		}
+		for j := 0; j < m.cols; j++ {
+			out.v[i][j] = math.Exp(m.v[i][j] - max)
+			sum += out.v[i][j]
+		}
+		for j := 0; j < m.cols; j++ {
+			out.v[i][j] = out.v[i][j] / sum
+		}
+	}
+	return out
+}
+
+// Shape of the matrix
+func (m *Matrix) Shape() (int, int) {
+	return m.rows, m.cols
+}
+
+// Get the value at i, in the matrix
+func (m *Matrix) Get(i int, j int) float32 {
+	return m.v[i][j]
+}
+
+// Batch get the nth batch of a matrix. Returns a new matrix
+func (m *Matrix) Batch(size int, batchIdx int) *Matrix {
+	out := NewMatrix(size, m.cols)
+	out.v = m.v[size*batchIdx : size*batchIdx+size]
+	return out
+}
+
+// Mean the arithmetic mean of all values in the matrix
+func (m *Matrix) Mean() float32 {
+	return m.Sum() / float32(m.rows*m.cols)
+}
+
+// Set value at i,j in the matrix
+func (m *Matrix) Set(i int, j int, val float32) {
+	m.v[i][j] = val
+}
+
+// Rows the number of rows in the matrix
+func (m *Matrix) Rows() int {
+	return m.rows
+}
+
+// Cols the number of columns in the matrix
+func (m *Matrix) Cols() int {
+	return m.cols
+}
+
+// Min the minimum value in the matrix
+func (m *Matrix) Min() float32 {
+	min := math.Inf(1)
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			min = math.Min(min, m.v[i][j])
+		}
+	}
+	return min
+}
+
+// Max maximum value in the matrix
+func (m *Matrix) Max() float32 {
+	min := m.v[0][0]
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			min = math.Max(min, m.v[i][j])
+		}
+	}
+	return min
+}
+
+// NonZero return a new matrix with 1s where the source matrix has a value > 0. Returns a new matrix
+func (m *Matrix) NonZero() *Matrix {
 	out := NewMatrix(m.rows, m.cols)
 	for i := 0; i < m.rows; i++ {
 		for j := 0; j < m.cols; j++ {
-			out.v[i][j] = math.Exp(m.v[i][j])
-			sum += out.v[i][j]
+			if m.v[i][j] > 0 {
+				out.v[i][j] = 1
+			}
 		}
 	}
-	out.Divn(sum)
+	return out
+}
+
+// MeanCols the mean of each column. Returns a new array
+func (m *Matrix) MeanCols() *Matrix {
+	out := NewMatrix(1, m.cols)
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			out.v[0][j] += m.v[i][j]
+		}
+	}
+	return out.Divn(float32(m.rows))
+}
+
+//MeanRows the mean of each row. Returns a new array
+func (m *Matrix) MeanRows() *Matrix {
+	out := NewMatrix(1, m.rows)
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			out.v[0][i] += m.v[i][j]
+		}
+	}
+	return out.Divn(float32(m.cols))
+}
+
+// SumRows the sum of each row
+func (m *Matrix) SumRows() *Matrix {
+	out := NewMatrix(1, m.rows)
+	for i := 0; i < m.rows; i++ {
+		for j := 0; j < m.cols; j++ {
+			out.v[0][i] += m.v[i][j]
+		}
+	}
 	return out
 }

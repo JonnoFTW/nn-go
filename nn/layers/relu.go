@@ -21,8 +21,9 @@ func (l *Relu) Forward(input *nn.Matrix) *nn.Matrix {
 }
 
 // Backward pass through the network, updating if learning enabled
-func (l *Relu) Backward(input *nn.Matrix) *nn.Matrix {
-	return input
+func (l *Relu) Backward(input *nn.Matrix, grads *nn.Matrix, optimizer *nn.Optimizer) *nn.Matrix {
+	reluGrad := input.NonZero()
+	return reluGrad.Mult(grads)
 }
 
 func NewReluLayer() *Relu {
